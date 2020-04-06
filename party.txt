@@ -1,6 +1,6 @@
-Leia
-Luke
-Simone
-Darth Vader
-Oksana
-Isildor of the Ruins
+Leia,15
+Luke,13
+Simone,18
+Darth Vader,16
+Oksana,13
+Isildor of the Ruins,14
