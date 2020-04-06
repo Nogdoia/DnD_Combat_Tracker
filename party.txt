@@ -1,6 +1,5 @@
-Leia
-Luke
-Simone
-Darth Vader
-Oksana
-Isildor of the Ruins
+Human Fighter - Noble, 17
+Human Fighter - Folk Hero, 14
+Halfling Rogue, 14
+Dwarven Cleric, 18
+Elven Wizard, 12

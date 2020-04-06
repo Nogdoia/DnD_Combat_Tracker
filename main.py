@@ -1,5 +1,6 @@
 import tkinter as tk
 import os
+import time
 
 def load_party():
     party_list = []
@@ -7,51 +8,55 @@ def load_party():
         with open('party.txt', mode='r') as party_doc:
             for line in party_doc:
                 if len(line.strip()) > 0:
-                    party_list.append(line.strip())
+                    member = line.split(',')
+                    party_list.append([member[0].strip(), member[1].strip()])
         return party_list
     else:
         return []
 
 
-def reset(par_list_entry, num_of_par, combatants):
-    num_of_par.destroy()
-    num_of_par.reset()
+def reset(combatant_entries, num_of_comb, combatants):
+    num_of_comb.destroy()
+    num_of_comb.reset()
     combatants.reset()
-    ple = par_list_entry.entries
-    for p in ple:
-        ple[p].destroy()
-    par_list_entry.reset()
+    for c in combatant_entries.entries:
+        combatant_entries.entries[c].destroy()
+    combatant_entries.reset()
     
 
-def create(par_list_entry, num_of_par, combatants):
-    n_participants = int(num_of_par.get())
-    num_of_par.destroy()
+def create(combatant_entries, num_of_comb, combatants):
+    n_combatants = int(num_of_comb.get())
+    num_of_comb.destroy()
     party = load_party()
-    participants = []
-    for i in range(n_participants):
+    all_combatants = []
+    for i in range(n_combatants):
         if i < len(party):
-            participants.append(party[i])
+            all_combatants.append(party[i])
         else:
-            participants.append('Opponent {}'.format(i-len(party)+1))
-    for p in participants:
-        par_list_entry.append(p, Entry_class(p))
+            all_combatants.append(['Opponent {}'.format(i-len(party)+1), '??'])
+    for c in all_combatants:
+        combatant_entries.append(c[0], Combatant_entry_class(c[0]))
 
 
-def start(par_list_entry, num_of_par, combatants):
-    participants = {}
-    ple = par_list_entry.entries
-    for p in ple:
-        new = ple[p].load()
-        participants[new[0]] = new[1]
-    sort_par = sorted(participants.items(), key=lambda x: x[1], reverse=True)
-    par_list_entry.reset()
+def start(combatant_entries, num_of_comb, combatants):
+    all_combatants = {}
+    for c in combatant_entries.entries:
+        new = combatant_entries.entries[c].load()
+        all_combatants[new[0]] = new[1]
+    sort_comb = sorted(all_combatants.items(), key=lambda x: x[1], reverse=True)
+    print(sort_comb)
+    combatant_entries.reset()
+    time.sleep(10)
     party = load_party()
-    for pair in sort_par:
-        if pair[0] in party:
-            c = Combatant_class(pair[0], pair[1], True)
-        else:
-            c = Combatant_class(pair[0], pair[1], False)
-        combatants.append(c)
+    for pair in (sort_comb):
+        for member in party:
+            if pair[0] == member[0]:
+                print('rovna se')
+                c = Combatant_class(pair[0], pair[1], True, member[1])
+            else:
+                print('nerovna se')
+                c = Combatant_class(pair[0], pair[1], False, member[1])
+            combatants.append(pair[0], c)
 
 
 
@@ -69,19 +74,19 @@ def sub(num_obj):
     num_obj.config(state='readonly')
 
 
-class Combatants_class():
-    def __init__(self):
-        self.combatants = []
-    def append(self, new):
-        self.combatants.append(new)
-    def reset(self):
-        for c in self.combatants:
-            c.destroy()
-        self.combatants = []
+#class Combatants_class():
+#    def __init__(self):
+#        self.combatants = []
+#    def append(self, new):
+#        self.combatants.append(new)
+#    def reset(self):
+#        for c in self.combatants:
+#            c.destroy()
+#        self.combatants = []
 
 
 class Combatant_class():
-    def __init__(self, name, initiative, friend):
+    def __init__(self, name, initiative, friend, ac):
         self.init_box = tk.Entry(plocha)
         self.init_box.insert(0, initiative)
         self.init_box.config(state='readonly')
@@ -91,6 +96,8 @@ class Combatant_class():
             self.name_box.config(state='readonly', fg='blue')
         else:
             self.name_box.config(state='readonly', fg='red')
+        self.ac_box = tk.Entry(plocha)
+        self.ac_box.insert(0, ac)
         self.hp_box = tk.Entry(plocha)
         self.hp_box.insert(0, 10)
         self.hp_box.config(state='readonly')
@@ -101,6 +108,7 @@ class Combatant_class():
         self.cond_box = tk.OptionMenu(plocha, self.var, 'None', 'Poisoned', 'Prone', 'Unconscious', 'Grappled')
         self.init_box.pack()
         self.name_box.pack()
+        self.ac_box.pack()
         self.hp_box.pack()
         self.hp_add.pack()
         self.hp_sub.pack()
@@ -115,38 +123,36 @@ class Combatant_class():
 
 
 
-class Num_of_par_class():
+class Num_edit_class():
     def __init__(self):
-        self.def_num_of_par = len(load_party())
-        self.num = self.def_num_of_par
-        self.num_of_par = tk.Entry(plocha)
-        self.num_of_par.insert(0, str(self.def_num_of_par))
-        self.num_of_par.config(state='readonly', width=2)
-        self.plus_par = tk.Button(plocha, text='+', command=lambda: add(self.num_of_par))
-        self.minus_par = tk.Button(plocha, text='-', command=lambda: sub(self.num_of_par))
-        self.num_of_par.pack()
-        self.plus_par.pack()
-        self.minus_par.pack()
+        self.num = 10
+        self.num_entry = tk.Entry(plocha)
+        self.num_entry.insert(0, str(self.num))
+        self.num_entry.config(state='readonly', width=2)
+        self.plus = tk.Button(plocha, text='+', command=lambda: add(self.num_entry))
+        self.minus = tk.Button(plocha, text='-', command=lambda: sub(self.num_entry))
+        self.num_entry.pack()
+        self.plus.pack()
+        self.minus.pack()
     def destroy(self):
-        self.num_of_par.destroy()
-        self.plus_par.destroy()
-        self.minus_par.destroy()
+        self.num_entry.destroy()
+        self.plus.destroy()
+        self.minus.destroy()
     def reset(self):
-        self.def_num_of_par = len(load_party())
-        self.num = self.def_num_of_par
-        self.num_of_par = tk.Entry(plocha)
-        self.num_of_par.insert(0, str(self.def_num_of_par))
-        self.num_of_par.config(state='readonly', width=2)
-        self.plus_par = tk.Button(plocha, text='+', command=lambda: add(self.num_of_par))
-        self.minus_par = tk.Button(plocha, text='-', command=lambda: sub(self.num_of_par))
-        self.num_of_par.pack()
-        self.plus_par.pack()
-        self.minus_par.pack()
+        self.num = 10
+        self.num_entry = tk.Entry(plocha)
+        self.num_entry.insert(0, str(self.num))
+        self.num_entry.config(state='readonly', width=2)
+        self.plus = tk.Button(plocha, text='+', command=lambda: add(self.num_entry))
+        self.minus = tk.Button(plocha, text='-', command=lambda: sub(self.num_entry))
+        self.num_entry.pack()
+        self.plus.pack()
+        self.minus.pack()
     def get(self):
-        return self.num_of_par.get()
+        return self.num_entry.get()
 
 
-class Entries_class():
+class Entries_holder():
     def __init__(self):
         self.entries = {}
     def reset(self):
@@ -158,27 +164,18 @@ class Entries_class():
 
 
 
-class Entry_class():
-    def __init__(self, p):
-        self.ent_par = tk.Entry(plocha)
-        self.ent_par.insert(0, p)
-        self.ent_par.config(state='normal')
-        self.ent_init = tk.Entry(plocha)
-        self.ent_init.insert(0, '10')
-        self.ent_init.config(state='readonly')
-        self.ent_add = tk.Button(plocha, text='+', command=lambda: add(self.ent_init))
-        self.ent_sub = tk.Button(plocha, text='-', command=lambda: sub(self.ent_init))
-        self.ent_par.pack()
-        self.ent_init.pack()
-        self.ent_add.pack()
-        self.ent_sub.pack()
+class Combatant_entry_class():
+    def __init__(self, comb_name):
+        self.ent_comb = tk.Entry(plocha)
+        self.ent_comb.insert(0, comb_name)
+        self.ent_comb.config(state='normal')
+        self.ent_comb.pack()
+        self.ent_init = Num_edit_class()
     def destroy(self):
-        self.ent_par.destroy()
+        self.ent_comb.destroy()
         self.ent_init.destroy()
-        self.ent_add.destroy()
-        self.ent_sub.destroy()
     def load(self):
-        name = self.ent_par.get()
+        name = self.ent_comb.get()
         initiative = int(self.ent_init.get())
         return [name, initiative]
 
@@ -189,9 +186,9 @@ root.geometry('400x500')
 
 
 menuLista = tk.Menu(root)
-menuLista.add_command(label='Reset', command=lambda: reset(par_list_entry, num_of_par, combatants))
-menuLista.add_command(label='Create Combat', command=lambda: create(par_list_entry, num_of_par, combatants))
-menuLista.add_command(label='Start Combat', command=lambda: start(par_list_entry, num_of_par, combatants))
+menuLista.add_command(label='Reset', command=lambda: reset(combatant_entries, num_of_comb, combatants))
+menuLista.add_command(label='Create Combat', command=lambda: create(combatant_entries, num_of_comb, combatants))
+menuLista.add_command(label='Start Combat', command=lambda: start(combatant_entries, num_of_comb, combatants))
 menuLista.add_command(label='Exit', command=root.destroy)
 root.config(menu=menuLista)
 
@@ -200,9 +197,9 @@ plocha = tk.Frame()
 plocha.pack()
 
 
-par_list_entry = Entries_class()
-num_of_par = Num_of_par_class()
-combatants = Combatants_class()
+combatant_entries = Entries_holder()
+num_of_comb = Num_edit_class()
+combatants = Entries_holder()
 
 
 
