@@ -286,7 +286,7 @@ class Entry_class():
 
 
 root = tk.Tk()
-root.geometry('650x300')
+root.geometry('430x300')
 root.title('Combat Tracker')
 
 
